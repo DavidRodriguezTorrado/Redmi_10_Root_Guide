@@ -1,0 +1,155 @@
+; SciU2S.INF - INF file for Spreadtrum USB-to-Serial Device
+; Copyright (C) 2001-2009, Spreadtrum Communication Inc.
+;
+; 2005-11-11 created by anli.wei
+; 2006-03-08 modified to support composite device                     [anli.wei]
+; 2008-06-03 delete "at" port, add "dumprx" flag                      [anli.wei]
+; 2008-08-27 checked ok by chkinf tool and delete composite device    [anli.wei]
+; 2010-01-07 add 64-bit support                                       [rocky.liao]
+;===============================================================================
+; 
+;===============================================================================
+
+[Version]
+Signature  = "$WINDOWS NT$"
+Class      = Ports
+ClassGuid  = {4D36E978-E325-11CE-BFC1-08002BE10318}
+Provider   = %Mfg%
+CatalogFile= SciU2S.cat
+DriverVer  = 02/15/2011,1.5.7.1
+
+[Manufacturer]
+%MfgName%=SCI,NTx86,NTamd64
+
+;Windows 2000
+[SCI]
+%USB\VID_1782&PID_5D02&MI_01%  = ComPort, USB\VID_1782&PID_5D02&MI_01
+%USB\VID_1782&PID_5D03&MI_01%  = ComPort, USB\VID_1782&PID_5D03&MI_01
+%USB\VID_1782&PID_5D07&MI_01%  = ComPort, USB\VID_1782&PID_5D07&MI_01
+
+; VID_0525&PID_a4a6 is for test only
+;%USB\VID_0525&PID_a4a6%        = ComPort, USB\VID_0525&PID_a4a6
+%USB\VID_1782&PID_4D00%        = ComPort, USB\VID_1782&PID_4D00
+;%DiagDsc%   =ComPort,USB\VID_1782&PID_3d02&MI_01
+
+;Windows XP and later x86
+[SCI.NTx86]
+%USB\VID_1782&PID_5D02&MI_01%  = ComPort, USB\VID_1782&PID_5D02&MI_01
+%USB\VID_1782&PID_5D03&MI_01%  = ComPort, USB\VID_1782&PID_5D03&MI_01
+%USB\VID_1782&PID_5D07&MI_01%  = ComPort, USB\VID_1782&PID_5D07&MI_01
+
+; VID_0525&PID_a4a6 is for test only
+;%USB\VID_0525&PID_a4a6%        = ComPort, USB\VID_0525&PID_a4a6
+%USB\VID_1782&PID_4D00%        = ComPort, USB\VID_1782&PID_4D00
+;%DiagDsc%   =ComPort,USB\VID_1782&PID_3d02&MI_01
+
+;Windows XP and later x64
+[SCI.NTamd64]
+%USB\VID_1782&PID_5D02&MI_01%  = ComPort, USB\VID_1782&PID_5D02&MI_01
+%USB\VID_1782&PID_5D03&MI_01%  = ComPort, USB\VID_1782&PID_5D03&MI_01
+%USB\VID_1782&PID_5D07&MI_01%  = ComPort, USB\VID_1782&PID_5D07&MI_01
+; VID_0525&PID_a4a6 is for test only
+;%USB\VID_0525&PID_a4a6%        = ComPort, USB\VID_0525&PID_a4a6
+
+%USB\VID_1782&PID_4D00%        = ComPort, USB\VID_1782&PID_4D00
+;%DiagDsc%   =ComPort,USB\VID_1782&PID_3d02&MI_01
+
+[SourceDisksNames]
+1=%Disk1%,,,
+
+;========================================================================
+; SourceDisksFiles
+;========================================================================
+
+[SourceDisksFiles]
+SciU2S.sys=1
+
+;========================================================================
+;  DestinationDirs
+;========================================================================
+
+[DestinationDirs]
+SciU2S.sys.Files.NT = 12          ; Drivers directory
+
+;========================================================================
+; copy files section flag
+;========================================================================
+
+[SciU2S.Sys.Files.NT]
+SciU2S.sys
+
+[ComPort.NT]
+CopyFiles = SciU2S.Sys.Files.NT
+AddReg    = ComPort.NT.AddReg
+
+
+[ComPort.NT.HW]
+AddReg=ComPort.NT.HW.AddReg
+
+
+[ComPort.NT.AddReg]
+HKR,,DevLoader,,*ntkern
+HKR,,NTMPDriver,,sciu2s.sys
+HKR,,EnumPropPages32,,"MsPorts.dll,SerialPortPropPageProvider"
+
+
+[ComPort.NT.HW.AddReg]
+HKR,,"UpperFilters",0x00010000,"serenum"
+
+;========================================================================
+;  Service installation
+;  Port Driver (function driver for this device)
+;========================================================================
+
+[ComPort.NT.Services]
+AddService=SciandroidU2S,0x00000002,Ser_Srv_Inst
+AddService = Serenum,,Serenum_Service_Inst
+
+
+;========================================================================
+;  Serial Port Driver install sections
+;========================================================================
+
+[Ser_Srv_Inst]
+DisplayName   = %SU2S.SVCDESC%
+ServiceType   = 1                 ; SERVICE_KERNEL_DRIVER
+StartType     = 3                 ; SERVICE_SYSTEM_START (this driver may do detection)
+ErrorControl  = 1                 ; SERVICE_ERROR_IGNORE
+ServiceBinary = %12%\SciU2S.sys
+
+AddReg=SrvReg.NT
+
+
+[Serenum_Service_Inst]
+DisplayName    = %Serenum.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\serenum.sys
+LoadOrderGroup = PNP Filter
+
+
+[SrvReg.NT]
+HKR,,"IsComposite",0x00010001,0x00000000  ; DWORD value for is composite device
+HKR,,"RxBufSize",0x00010001,0x00000200    ; DWORD value for rx buffer 64,512,1024,2048,4096
+HKR,,"DbgLevel",0x00010001,0x00000005    ; Debug level
+
+;========================================================================
+; User readable strings
+;========================================================================
+
+[Strings]
+Mfg            = "Spreadtrum"
+Disk1          = "SCI USB2Serial Driver Diskette"
+MfgName        = "Spreadtrum Communication Inc."
+PortsClassName = "Ports (COM & LPT)"
+USB\VID_1782&PID_5D02&MI_01        = "SCI Anroid USB2Serial"
+USB\VID_1782&PID_5D03&MI_01        = "SCI Anroid USB2Serial"
+USB\VID_1782&PID_5D07&MI_01        = "SCI Anroid USB2Serial"
+
+; VID_0525&PID_a4a6 is for test only
+;USB\VID_0525&PID_a4a6              = "SCI Anroid USB2Serial"
+USB\VID_1782&PID_4D00              = "SCI Anroid USB2Serial"
+SU2S.SVCDESC   = "Spreadtrum Anroid USB to Serial port driver for DL"
+Serenum.SVCDESC  = "Serenum Filter Driver"
+;DiagDsc        = "Diag"
